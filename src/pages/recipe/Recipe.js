@@ -3,7 +3,7 @@ import './Receipe.css'
 export default function Receipe() {
     return (
         <div>
-            hello sir
+            <h1>Hello sir</h1>       
         </div>
     )
 }
