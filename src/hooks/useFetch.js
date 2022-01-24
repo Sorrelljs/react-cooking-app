@@ -1,17 +1,27 @@
 import { useState, useEffect, useRef } from "react"
 
-const useFetch = (url, _options) => {
+const useFetch = (url, method = "GET") => {
     // Data state is updated by the custom fetch request which talks to the database
     const [data, setData] = useState(null)
     // IsPending handles the loader 
     const [isPending, setIsPending] = useState(false)
     // error state handles any errors
     const [error, setError] = useState(false)
+    // state for options
+    const [options, setOptions] = useState(null)
 
-    // use useRef to wrap an object/array argument
-    // which is a useEffect dependency 
-
-    const options = useRef(_options).current
+    const postData = (postData) => {
+        setOptions({
+            // The type of request 
+            method: "POST",
+            headers: {
+                // This just tells us what data is going to be pushed (json)
+                "Content-Type": "application/json"
+            },
+            // This turns the javascript object into a json string
+            body: JSON.stringify(postData)
+        })
+    }
 
 
     useEffect(() => {
@@ -19,11 +29,11 @@ const useFetch = (url, _options) => {
         // which will help with any requests made then cancelled mid way. (No errors if using this)
         const controller = new AbortController()
 
-        const fetchData = async () => {
-            console.log(options)
+        const fetchData = async (fetchOptions) => {
+            // console.log(options)
             try {
                 setIsPending(true) // set is pending to true while we wait for request
-                const response = await fetch(url, { signal: controller.signal }) // make fetch request
+                const response = await fetch(url, { ...fetchOptions, signal: controller.signal }) // make fetch request
                 // If response is not ok throw a new Error 
                 if (!response.ok) {
                     throw new Error(response.statusText)
@@ -45,13 +55,20 @@ const useFetch = (url, _options) => {
             }
 
         }
+
+        if(method === 'GET'){
         fetchData()
+        } 
+
+        if(method === 'POST' && options) {
+            fetchData(options)
+        }
 
         return () => {
             controller.abort()
         }
-    }, [url, options])
-    return { data, isPending, error }
+    }, [url, options, method])
+    return { data, isPending, error, postData }
 }
 
 
